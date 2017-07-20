@@ -1,4 +1,5 @@
 import numpy
+from config import log
 
 
 class Processor:
@@ -18,7 +19,7 @@ class Processor:
             for choice in items[column]:
                 self.data['{0}_{1}'.format(column, choice)] = self.data[column].apply(
                     lambda a: 1 if a is choice else 0)
-            print('one hot for %s' % column)
+            log(0x19, 'Processor.one_hot_encoding', 'one hot for %s' % column)
             self.data.drop(column, axis=1, inplace=True)
         if record:
             self.records.append({'name': 'one_hot_encoding', 'args': {'items': items}})
@@ -34,15 +35,16 @@ class Processor:
             self.records.append({'name': 'drop', 'args': {'names': names}})
 
     def normalize(self, norm=None, record=True):
+        num_cols = self.data.columns[self.data.dtypes != "object"]
         if norm is None:
-            norm = (self.data.std, self.data.mean)
-        self.data = (self.data - norm[1]) / norm[0]
+            norm = (list(self.data[num_cols].std()), list(self.data[num_cols].mean()))
+        self.data[num_cols] = (self.data[num_cols] - norm[1]) / norm[0]
         if record:
             self.records.append({'name': 'normalize', 'args': {'norm': norm}})
 
     def redo(self, records):
         for each in records:
-            print('Do:', each['name'])
+            log(0x16, 'Processor.redo:', each['name'])
             func = self.__getattribute__(each['name'])
             if func:
                 func(**each['args'], record=False)
@@ -50,10 +52,12 @@ class Processor:
                 raise NameError("Unknown Function %s" % each['name'])
 
     def fill_missing(self, fill_with='mean', record=True):
-        # num_data = self.data.index[]
         columns = self.data.columns[self.data.dtypes != 'object']
+        if self.records[-1]['name'] == 'normalize':
+            fill_with = 0
         for column in columns:
-            self.fillna(column, self.data[column].__getattribute__(fill_with)(), record)
+            fill = self.data[column].__getattribute__(fill_with)() if isinstance(fill_with, str) else fill_with
+            self.fillna(column, fill, record)
 
     def fillna(self, column, fill_with, record=True):
         self.data[column].fillna(fill_with, inplace=True)
