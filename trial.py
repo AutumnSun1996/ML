@@ -1,13 +1,12 @@
 from celery_tasks.base import tuning
-from sklearn.datasets import load_boston
+from sklearn.datasets import load_boston, load_iris
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import cross_val_score
 
 import lightgbm as lgb
 
-
 if __name__ == '__main__':
-    b_x, b_y =  load_boston(return_X_y=True)
+    b_x, b_y = load_boston(return_X_y=True)
 
     # reg = GradientBoostingRegressor(n_estimators=50, random_state=0)
     params = {
@@ -29,9 +28,9 @@ if __name__ == '__main__':
     }
     # res = tuning(reg, b_x, b_y, params, cv, gp)
     # print(res)
-
+    i_x, i_y = load_iris(return_X_y=True)
     lc = lgb.LGBMClassifier()
-    res_lc = tuning(lc, b_x, b_y, params, cv, gp)
+    res_lc = tuning(lc, i_x, i_y, params, cv, gp)
 
 
     #
