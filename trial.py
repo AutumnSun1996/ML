@@ -19,7 +19,7 @@ if __name__ == '__main__':
         'scoring': 'neg_mean_absolute_error'
     }
     gp = {
-        'n_calls': 10,
+        'n_calls': 50,
         'random_state': 0,
         'verbose': True
     }
