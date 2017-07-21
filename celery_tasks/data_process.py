@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 from config import log
 
 
@@ -25,7 +25,8 @@ class Processor:
             self.records.append({'name': 'one_hot_encoding', 'args': {'items': items}})
 
     def add_column(self, name, source, func, record=True):
-        self.data[name] = self.data[source].apply(numpy.__getattribute__(func))
+        # noinspection PyUnresolvedReferences
+        self.data[name] = self.data[source].apply(np.__getattribute__(func))
         if record:
             self.records.append({'name': 'add_column', 'args': {'name': name, 'source': source, 'func': func}})
 
