@@ -1,20 +1,36 @@
-from celery_tasks.base import tuning
-from sklearn.datasets import load_boston, load_iris
-from sklearn.ensemble import GradientBoostingRegressor
+import numpy as np
 from sklearn.model_selection import cross_val_score
+from skopt import gp_minimize
+from sklearn.datasets import load_boston
+from celery_tasks.base import MyCatBoostRegressor
 
-import lightgbm as lgb
+
+def tuning(predictor, x, y, params, cv, gp):
+    space = []
+    names = []
+    for key in params:
+        names.append(key)
+        space.append(params[key])
+
+    def objective(p):
+        print('Set:', dict(zip(names, p)))
+        predictor.set_params(**dict(zip(names, p)))
+        return -np.mean(cross_val_score(predictor, x, y, **cv))
+
+    result = gp_minimize(objective, space, **gp)
+    predictor.set_params(**dict(zip(names, result.x)))
+    predictor.fit(x, y)
+    return result
+
 
 if __name__ == '__main__':
     b_x, b_y = load_boston(return_X_y=True)
 
-    # reg = GradientBoostingRegressor(n_estimators=50, random_state=0)
+    cbr = MyCatBoostRegressor()
+
     params = {
-        'max_depth': (1, 5),
+        'depth': (1, 5),
         'learning_rate': (1e-05, 1, 'log-uniform'),
-        # 'max_features': (1, b_x.shape[1]),
-        # 'min_samples_split': (2, 100),
-        # 'min_samples_leaf': (1, 100)
     }
     cv = {
         'cv': 5,
@@ -22,39 +38,15 @@ if __name__ == '__main__':
         'scoring': 'neg_mean_absolute_error'
     }
     gp = {
-        'n_calls': 50,
+        'n_calls': 10,
         'random_state': 0,
         'verbose': True
     }
-    # res = tuning(reg, b_x, b_y, params, cv, gp)
-    # print(res)
-    i_x, i_y = load_iris(return_X_y=True)
-    lc = lgb.LGBMClassifier()
-    res_lc = tuning(lc, i_x, i_y, params, cv, gp)
-
-
-    #
-    # from catboost import CatBoostRegressor
-    #
-    # b_x, b_y = load_boston(return_X_y=True)
-    # cbr = CatBoostRegressor()
-    # params = {
-    #     'depth': (1, 5),
-    #     'learning_rate': (1e-05, 1, 'log-uniform'),
-    #     #     'max_features': (1, b_features),
-    #     #     'min_samples_split': (2, 100),
-    #     #     'min_samples_leaf': (1, 100)
-    # }
-    # cv = {
-    #     'cv': 5,
-    #     'n_jobs': -1,
-    #     'scoring': 'neg_mean_absolute_error'
-    # }
-    # gp = {
-    #     'n_calls': 10,
-    #     'random_state': 0,
-    #     'verbose': True
-    # }
-    # print(cbr.get_params())
+    # params = cbr.get_params()
+    # for k in params:
+    #     print(k, ':', type(params[k]).__name__)
     # cbr.set_params(depth=5)
-    # res_cbr = tuning(cbr, b_x, b_y, params, cv, gp)
+    # params = cbr.get_params()
+    # for k in params:
+    #     print(k, ':', type(params[k]).__name__)
+    res_cbr = tuning(cbr, b_x, b_y, params, cv, gp)
