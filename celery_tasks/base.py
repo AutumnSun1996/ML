@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.model_selection import cross_val_score
 from skopt import gp_minimize
+from config import log
 
 
 class BaseEstimator:
@@ -40,6 +41,7 @@ def tuning(predictor, x, y, params, cv, gp):
         space.append(params[key])
 
     def objective(p):
+        log(0x26, 'Set:', dict(zip(names, p)))
         predictor.set_params(**dict(zip(names, p)))
         return -np.mean(cross_val_score(predictor, x, y, **cv))
 
