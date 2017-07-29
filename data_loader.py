@@ -35,7 +35,7 @@ def load_orange(label='appetency', frac=0.5):
     :return: dict{dataset}
     '''
     log(0x24, 'Use Data: orange_{}'.format(label))
-    data = pd.read_csv('data/orange/train.data', sep='\t')
+    data = pd.read_csv('data/orange/train.data', sep='\t', nrows=2e4)
     data = data.dropna(axis=1, how='all')
     mean_val = data.mean()
     indices = mean_val.index
