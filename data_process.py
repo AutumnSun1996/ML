@@ -1,28 +1,21 @@
 import numpy as np
+import pandas as pd
 from config import log
 
 
 class Processor:
-    def __init__(self, data):
+    def __init__(self, data, records=None):
         self.data = data.copy()
-        self.records = []
+        self.records = [] if records is None else records
 
-    def one_hot(self, record=True):
-        temp = self.data.loc[:, self.data.dtypes == 'object']
-        items = {}
-        for col in temp.columns:
-            items[col] = list(temp[col].dropna().drop_duplicates())
-        self.one_hot_encoding(items, record)
-
-    def one_hot_encoding(self, items, record=True):
-        for column in items:
-            for choice in items[column]:
-                self.data['{0}_{1}'.format(column, choice)] = self.data[column].apply(
-                    lambda a: 1 if a is choice else 0)
-            log(0x19, 'Processor.one_hot_encoding', 'one hot for %s' % column)
-            self.data.drop(column, axis=1, inplace=True)
+    def one_hot_encoding(self, columns=None, record=True):
+        self.data = pd.get_dummies(self.data)
+        if columns is None:
+            columns = list(self.data.columns)
+        else:
+            self.data = self.data.loc[:, columns].fillna(0, columns=columns)
         if record:
-            self.records.append({'name': 'one_hot_encoding', 'args': {'items': items}})
+            self.records.append({'name': 'one_hot_encoding', 'args': {'columns': columns}})
 
     def add_column(self, name, source, func, record=True):
         # noinspection PyUnresolvedReferences
@@ -43,8 +36,8 @@ class Processor:
         if record:
             self.records.append({'name': 'normalize', 'args': {'norm': norm}})
 
-    def redo(self, records):
-        for each in records:
+    def redo(self):
+        for each in self.records:
             log(0x16, 'Processor.redo:', each['name'])
             func = self.__getattribute__(each['name'])
             if func:
@@ -54,13 +47,23 @@ class Processor:
 
     def fill_missing(self, fill_with='mean', record=True):
         columns = self.data.columns[self.data.dtypes != 'object']
-        if self.records[-1]['name'] == 'normalize':
+        if self.records[-1]['name'] == 'normalize' and fill_with == 'mean':
             fill_with = 0
-        for column in columns:
-            fill = self.data[column].__getattribute__(fill_with)() if isinstance(fill_with, str) else fill_with
-            self.fillna(column, fill, record)
 
-    def fillna(self, column, fill_with, record=True):
-        self.data[column].fillna(fill_with, inplace=True)
+        fill = {}
+        if isinstance(fill_with, str):
+            for column in columns:
+                fill[column] = self.data[column].__getattribute__(fill_with)()
+        elif isinstance(fill_with, (int, float)):
+            for column in columns:
+                fill[column] = fill_with
+        elif not isinstance(fill_with, dict):
+            raise TypeError('fill_with Should be number or dict or method name, get {!r}'.format(fill_with))
+        else:
+            fill = fill_with
+
+        for column in fill.keys():
+            self.data[column].fillna(fill.get(column), inplace=True)
+
         if record:
-            self.records.append({'name': 'fillna', 'args': {'column': column, 'fill_with': fill_with}})
+            self.records.append({'name': 'fill_missing', 'args': {'fill_with': fill}})
