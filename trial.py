@@ -14,14 +14,16 @@ from base import tuning
 from config import get_setting
 from data_loader import *
 
+
 # from config import log
 
 
 class Ensemble:
-    def __init__(self, base_estimators=None, random_state=0):
+    def __init__(self, base_estimators=None, random_state=0, cv=3):
         self.base_estimators = base_estimators
         self.estimator = MetaEstimator()
         self.random_state = random_state
+        self.fit_cv = cv
 
     def fit(self, X, y):
         cv = KFold(n_splits=5, shuffle=True, random_state=self.random_state)
@@ -94,14 +96,20 @@ if __name__ == '__main__':
     # data = load_Amazon()
     data = load_orange()
     random_state = 0
-    ensemble = Ensemble([
-        RandomForestClassifier(random_state=random_state),
-        GradientBoostingClassifier(random_state=random_state),
-        LGBMClassifier(seed=random_state),
-        XGBClassifier(seed=random_state),
-        CatBoostClassifier(random_seed=random_state),
-        LogisticRegression(random_state=random_state),
-    ])
+    cv = 5
+    log(0x24, 'random_state:', random_state, 'cv:', cv)
+    ensemble = Ensemble(
+        base_estimators=[
+            RandomForestClassifier(random_state=random_state),
+            # GradientBoostingClassifier(random_state=random_state),
+            LGBMClassifier(seed=random_state),
+            XGBClassifier(seed=random_state),
+            CatBoostClassifier(random_seed=random_state),
+            LogisticRegression(random_state=random_state),
+        ],
+        random_state=random_state,
+        cv=cv,
+    )
     check(ensemble, data, tune=False)
     for estimator in ensemble.base_estimators:
         check(estimator, data, tune=False, fit=False)

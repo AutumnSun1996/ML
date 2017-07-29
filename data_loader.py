@@ -17,14 +17,16 @@ def log(level, *messages, **kwargs):
 
 def process_data(all_data, target, frac=0.5):
     train = all_data.sample(frac=frac, random_state=0)
-    train_y = np.array(train[target])
-    train_x = np.array(train.drop(target, axis=1))
-    test = all_data.drop(train.index)
-    test_y = np.array(test[target])
-    test_x = np.array(test.drop(target, axis=1))
-
-    # return {'train': {'X': train_x, 'y': train_y}, 'test': {'X': test_x, 'y': test_y}}
-    return {'train': {'X': train_x[:], 'y': train_y[:]}, 'test': {'X': test_x[:], 'y': test_y[:]}}
+    train_index = train.index
+    train_y = train[target].values
+    train_x = train.drop(target, axis=1).values
+    del train
+    test = all_data.drop(train_index)
+    test_y = test[target].values
+    test_x = test.drop(target, axis=1).values
+    del test
+    return {'train': {'X': train_x, 'y': train_y}, 'test': {'X': test_x, 'y': test_y}}
+    # return {'train': {'X': train_x[:], 'y': train_y[:]}, 'test': {'X': test_x[:], 'y': test_y[:]}}
 
 
 def load_orange(label='appetency', frac=0.5):

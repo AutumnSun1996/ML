@@ -70,15 +70,8 @@ class Ensemble:
         self.random_state = random_state
 
     def fit(self, X, y):
-        cv = 2
-        # folds = KFold(n_splits=2, shuffle=True, random_state=self.random_state)
+        cv = KFold(n_splits=5, shuffle=True, random_state=self.random_state)
         predictions = []
-        idx = 0
-        # for train, test in folds.split(X):
-        #     estimator = self.base_estimators[idx]
-        #     idx += 1
-        # estimator.fit(X[train], y[train])
-        # prediction = estimator.predict_proba(X)
         for estimator in self.base_estimators:
             prediction = cross_val_predict(estimator, X, y, cv=cv, method='predict_proba')
             print('prediction of', estimator.__class__.__name__)

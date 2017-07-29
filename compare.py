@@ -1,4 +1,4 @@
-import os
+import datetime
 import time
 
 import pandas as pd
@@ -22,9 +22,11 @@ classifier_classes = [
 compare_data = {'Amazon': 'ACTION'}
 
 
-def log(*args, **kwargs):
-    print(*args, **kwargs)
-    print(*args, **kwargs, file=log_file)
+def log(level, *messages, **kwargs):
+    timestamp = datetime.datetime.now()
+    print('LOG: %02X' % level, timestamp, *messages, **kwargs)
+    kwargs.update({'file': log_file, 'flush': True})
+    print('%02X' % level, timestamp, *messages, **kwargs)
 
 
 def check_result(y_true, y_pred):
