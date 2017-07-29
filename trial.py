@@ -32,19 +32,22 @@ class Ensemble:
         cv = KFold(n_splits=5, shuffle=True, random_state=self.random_state)
         predictions = []
         for estimator in self.base_estimators:
-            log(0x25, 'cross_val_predict start', estimator.__class__.__name__)
+            name = estimator.__class__.__name__
+            log(0x25, 'cross_val_predict start', name)
             prediction = cross_val_predict(estimator, X, y, cv=cv, method='predict_proba')
-            log(0x25, 'cross_val_predict end', estimator.__class__.__name__)
-            print('prediction of', estimator.__class__.__name__)
-            print(prediction)
+            log(0x25, 'cross_val_predict end', name)
+            # print('prediction of', estimator.__class__.__name__)
+            # print(prediction)
+            log(0x25, 'CV Score', name, check_result(y, prediction))
             predictions.append(prediction.T[0])
-        print('all predictions')
-        print(np.array(predictions), y)
+        # print('all predictions')
+        # print(np.array(predictions), y)
         self.estimator.fit(np.array(predictions).T, y)
         for estimator in self.base_estimators:
-            log(0x25, 'fit start', estimator.__class__.__name__)
+            name = estimator.__class__.__name__
+            log(0x25, 'fit start', name)
             estimator.fit(X, y)
-            log(0x25, 'fit end:', estimator.__class__.__name__)
+            log(0x25, 'fit end:', name)
 
     def predict(self, X, margin):
         return np.array(self.predict_proba(X)[:, 0]) > margin

@@ -1,11 +1,9 @@
-# from sklearn.linear_model import ElasticNet as MetaEstimator
 from sklearn.linear_model.logistic import LogisticRegression as MetaEstimator
 import numpy as np
 from sklearn.model_selection import cross_val_score, cross_val_predict, KFold
 import sklearn.metrics
 from skopt import gp_minimize
 from config import log
-from sklearn.ensemble import BaseEnsemble
 
 
 # from catboost import CatBoostRegressor, CatBoostClassifier

@@ -9,8 +9,10 @@ print('Log To:', log_name)
 
 
 def log(level, *messages, **kwargs):
+    timestamp = datetime.datetime.now()
+    print('LOG: %02X' % level, timestamp, *messages, **kwargs)
     kwargs.update({'file': log_file, 'flush': True})
-    print('%02X' % level, datetime.datetime.now(), *messages, **kwargs)
+    print('%02X' % level, timestamp, *messages, **kwargs)
 
 
 def process_data(all_data, target, frac=0.5):
@@ -33,13 +35,14 @@ def load_orange(frac=0.5):
     indices = mean_val.index
     data[indices] = (data[indices] - mean_val) / data[indices].std()
     data = pd.get_dummies(data).fillna(0)
-    data['Target'] = pd.read_csv('data/orange/train_appetency.labels', header=None)[0].apply(lambda a: 1 if a > 0 else 0)
+    data['Target'] = pd.read_csv('data/orange/train_appetency.labels', header=None)[0].apply(
+        lambda a: 1 if a > 0 else 0)
     return process_data(data, 'Target', frac=frac)
 
 
 def load_Amazon(frac=0.5):
     log(0x24, 'Use Data: Amazon')
-    train = pd.read_csv('data/Amazon_train.csv', dtype='category')
+    train = pd.read_csv('data/Amazon/train.csv', dtype='category')
     train['ACTION'] = train['ACTION'].astype('int32')
     return process_data(pd.get_dummies(train), 'ACTION', frac)
 
