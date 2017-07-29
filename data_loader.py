@@ -27,15 +27,21 @@ def process_data(all_data, target, frac=0.5):
     return {'train': {'X': train_x[:], 'y': train_y[:]}, 'test': {'X': test_x[:], 'y': test_y[:]}}
 
 
-def load_orange(frac=0.5):
-    log(0x24, 'Use Data: orange')
+def load_orange(label='appetency', frac=0.5):
+    '''Load the kdd-cup-2009 dataset.
+
+    :param label: {'appetency', 'upselling'}. Default='appetency'
+    :param frac: Wanted fraction of train data. Default=0.5
+    :return: dict{dataset}
+    '''
+    log(0x24, 'Use Data: orange_{}'.format(label))
     data = pd.read_csv('data/orange/train.data', sep='\t')
     data = data.dropna(axis=1, how='all')
     mean_val = data.mean()
     indices = mean_val.index
     data[indices] = (data[indices] - mean_val) / data[indices].std()
     data = pd.get_dummies(data).fillna(0)
-    data['Target'] = pd.read_csv('data/orange/train_appetency.labels', header=None)[0].apply(
+    data['Target'] = pd.read_csv('data/orange/train_{}.labels'.format(label), header=None)[0].apply(
         lambda a: 1 if a > 0 else 0)
     return process_data(data, 'Target', frac=frac)
 
