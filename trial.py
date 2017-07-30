@@ -103,7 +103,7 @@ if __name__ == '__main__':
             RandomForestClassifier(random_state=random_state),
             # GradientBoostingClassifier(random_state=random_state),
             LGBMClassifier(seed=random_state),
-            XGBClassifier(seed=random_state),
+            # XGBClassifier(seed=random_state),
             CatBoostClassifier(random_seed=random_state),
             LogisticRegression(random_state=random_state),
         ],

@@ -17,11 +17,13 @@ def log(level, *messages, **kwargs):
 
 def process_data(all_data, target, frac=0.5):
     train = all_data.sample(frac=frac, random_state=0)
+    log(0x25, 'Train Data:', train.shape)
     train_index = train.index
     train_y = train[target].values
     train_x = train.drop(target, axis=1).values
     del train
     test = all_data.drop(train_index)
+    log(0x25, 'Test Data:', test.shape)
     test_y = test[target].values
     test_x = test.drop(target, axis=1).values
     del test
@@ -37,12 +39,12 @@ def load_orange(label='appetency', frac=0.5):
     :return: dict{dataset}
     '''
     log(0x24, 'Use Data: orange_{}'.format(label))
-    data = pd.read_csv('data/orange/train.data', sep='\t', nrows=2e4)
+    data = pd.read_csv('data/orange/train.data', sep='\t', )
     data = data.dropna(axis=1, how='all')
     mean_val = data.mean()
     indices = mean_val.index
     data[indices] = (data[indices] - mean_val) / data[indices].std()
-    data = pd.get_dummies(data).fillna(0)
+    data = pd.get_dummies(data, sparse=True).fillna(0)
     data['Target'] = pd.read_csv('data/orange/train_{}.labels'.format(label), header=None)[0].apply(
         lambda a: 1 if a > 0 else 0)
     return process_data(data, 'Target', frac=frac)
@@ -102,6 +104,8 @@ def load_adult():
     # print(train_dummy[[target]].describe())
     # print(test_dummy[[target]].describe())
     # np.ravel()
+    log(0x25, 'Train Data:', train_dummy.shape)
+    log(0x25, 'Test Data:', test_dummy.shape)
     return {'train': {'X': np.array(train_dummy.drop(target, axis=1)), 'y': np.ravel(train_dummy[[target]])},
             'test': {'X': np.array(test_dummy.drop(target, axis=1)), 'y': np.ravel(test_dummy[[target]])}, }
     # return {'train': {'X': train_dummy.drop(target, axis=1), 'y': train_dummy[[target]]},
