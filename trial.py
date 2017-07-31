@@ -26,7 +26,7 @@ class Ensemble:
         self.fit_cv = cv
 
     def fit(self, X, y):
-        cv = KFold(n_splits=5, shuffle=True, random_state=self.random_state)
+        cv = KFold(n_splits=self.fit_cv, shuffle=True, random_state=self.random_state)
         predictions = []
         for estimator in self.base_estimators:
             name = estimator.__class__.__name__
@@ -65,8 +65,8 @@ def check_result(y_true, y_pred):
 
 def check(estimator, data, tune=True, fit=True):
     log(0x25, '~Default Setting~', estimator.__class__.__name__)
-    tick = time.time()
     if fit:
+        tick = time.time()
         estimator.fit(**data['train'])
         log(0x25, 'Fit in:', time.time() - tick)
     if estimator.__class__.__name__ == 'Ensemble':

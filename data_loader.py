@@ -2,6 +2,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
+import scipy.sparse as sp
 
 log_name = 'log/{}.log'.format(datetime.datetime.now())
 log_file = open(log_name, 'w', -1, 'utf8')
@@ -20,12 +21,12 @@ def process_data(all_data, target, frac=0.5):
     log(0x25, 'Train Data:', train.shape)
     train_index = train.index
     train_y = train[target].values
-    train_x = train.drop(target, axis=1).values
+    train_x = sp.csc_matrix(train.drop(target, axis=1).values)
     del train
     test = all_data.drop(train_index)
     log(0x25, 'Test Data:', test.shape)
     test_y = test[target].values
-    test_x = test.drop(target, axis=1).values
+    test_x = sp.csc_matrix(test.drop(target, axis=1).values)
     del test
     return {'train': {'X': train_x, 'y': train_y}, 'test': {'X': test_x, 'y': test_y}}
     # return {'train': {'X': train_x[:], 'y': train_y[:]}, 'test': {'X': test_x[:], 'y': test_y[:]}}
